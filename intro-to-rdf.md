@@ -1,38 +1,116 @@
-# Intro to Resource Description Framework (RDF) for Networking Information on the Semantic Web
+# What is RDF and what is it good for?
 
 Joshua Tauberer
 
-October 2005
+July 2006
 
-This is an introduction to using Resource Description 
-Framework (RDF) for modeling distributed knowledge.  RDF is a method 
-designed for expressing knowledge in a decentralized world and is the 
-foundation of the Semantic Web, in which computer applications make use 
-of distributed, structured information spread throughout the Web. RDF is often 
+This is an introduction to RDF (Resource Description 
+Framework), the standard for encoding knowledge that forms the basis
+of the Semantic Web, in which computer applications make use of
+distributed, decentralized, structured information spread throughout
+the current web.  RDF is often 
 thought of as an XML format, but this article is from the view of RDF as 
 an abstract data structure, independent of how it is written.
 This article is geared toward those familiar with XML and programming.
 
 * * *
 
-1.  [Introduction](#Introduction)
-2.  [What is RDF?](#What is RDF?)
-    1.  [RDF Defined](#RDF Defined)
+1.  [Why we need a new standard for the Semantic Web](#Why we need a new standard for the Semantic Web)
+2.  [Introducing RDF](#Introducing RDF)
+3.  [Triples of knowledge](#Triples of knowledge)
+    1.  [The abstract RDF model defined](#The abstract RDF model defined)
     2.  [RDF as a Graph](#RDF as a Graph)
     3.  [Blank Nodes and Literal Values](#Blank Nodes and Literal Values)
-3.  [Distributed Information](#Distributed Information)
+4.  [Reading and writing RDF: Serialization syntaxes](#Reading and writing RDF: Serialization syntaxes)
+    1.  [The RDF/XML format](#The RDF/XML format)
+    2.  [Notation 3](#Notation 3)
+5.  [Distributed Information](#Distributed Information)
     1.  [Choosing the Right Predicates](#Choosing the Right Predicates)
     2.  [Meshing Information: A Real-World Example](#Meshing Information: A Real-World Example)
-4.  [Reading and Writing RDF](#Reading and Writing RDF)
-5.  [Comparing RDF with XML](#Comparing RDF with XML)
-6.  [RDF about RDF](#RDF about RDF)
+6.  [Comparing RDF with XML](#Comparing RDF with XML)
+7.  [RDF about RDF](#RDF about RDF)
     1.  [RDF Schema (RDFS)](#RDF Schema)
     2.  [Web Ontology Language (OWL)](#Web Ontology Language)
-7.  [Closing Remarks](#Closing Remarks)<center>
+8.  [Closing Remarks](#Closing Remarks)
 
-<a name="Introduction"> </a>
+This document was originally written in October 2005.
+In July 2006 it was revised and extended with material
+from my [xml.com](http://www.xml.com/pub/a/2001/01/24/rdf.html)
+article "What is RDF".
 
-## Introduction
+<a name="Why we need a new standard for the Semantic Web"> </a>
+
+## Why we need a new standard for the Semantic Web
+
+On the [Semantic Web](http://www.w3.org/2001/sw/), computers do the browsing for us.  The SemWeb enables computers to seek out knowledge distributed throughout the Web, mesh it, and then take action based on it.  To use an analogy, the current Web is a decentralized platform for distributed _presentations_ while the SemWeb is a decentralized platform for distributed _knowledge_.  [RDF](http://www.w3.org/RDF/) is the W3C standard for encoding knowledge.
+
+There of course is knowledge on the current Web, but it's off limits to computers.  Consider a [Wikipedia](http://www.wikipedia.org) page, which might convey a lot of information to the human reader, but to the computer displaying the page all it sees is presentation markup.  To the extent that computers make sense of HTML, images, Flash, etc., it's almost always for the purpose of creating a presentation for the end-user.   The real content, the knowledge the files are conveying to the human, is opaque to the computer.
+
+What is meant by “[semantic](http://en.wikipedia.org/wiki/Semantics)” in the Semantic Web is not that computers are going to understand the meaning of anything, but that the logical pieces of meaning can be mechanically manipulated by a machine to useful ends.
+
+So now imagine a new Web where the real content can be manipulated by computers.  For now, picture it as a web of databases.  One “semantic” website publishes a database about a product line, with products and descriptions, while another publishes a database of product reviews.  A third site for a retailer publishes a database of products in stock.  What standards would make it easier to write an application to mesh distributed databases together, so that a computer could use the three data sources together to help an end-user make better purchasing decisions?
+
+There's nothing stopping anyone from writing a program now to do those sorts of things, in just the same way that nothing stopped anyone from exchanging data before we had XML.  But standards facilitate building applications, especially in a decentralized system.  Here are some of the things we would want a standard about _distributed knowledge_ to consider:
+
+1.  Files on the Semantic Web need to be able to express information flexibly.  Life can't be neatly packed into tables, as in relational databases, or hierarchies, as in XML.  The information about movies and TV shows contained in the graph below is really best expressed _as a graph_:
+
+	![](whatisrdf_1.gif)
+
+_Knowledge as a Graph_
+
+Of course, we can't be drawing our way through the Semantic Web, so instead we will need a tabular notation for these graphs a bit like this:
+
+<table>
+	<tr><th>Start Node</th> <th>Edge Label</th> <th>End Node</th></tr>
+	<tr><td>vincent_donofrio</td> <td>starred_in</td> <td>law_&amp;_order_ci</td></tr>
+	<tr><td>law_&amp;_order_ci</td> <td>is_a</td> <td>tv_show</td> </tr>
+	<tr><td>the_thirteenth_floor</td> <td>similar_plot_as</td> <td>the_matrix</td> </tr>
+	<tr><td>...</td></tr>
+</table>
+
+Each row of the table specifies an edge from one node in the graph to another. More on this later.
+
+2.  Files on the Semantic Web need to be able to relate to each other.  A file about product prices posted by a vendor and a file with product reviews posted independently by a consumer need to have a way of indicating that they are talking about the same products.  Just using product names isn't enough.  Two products might exist in the world both called "The Super Duper 3000," and we want to eliminate ambiguity from the SemWeb so that computers can process the information with certainty.  The SemWeb needs globally unique identifiers that can be assigned in a decentralized way.
+
+3.  We will use vocabularies for making assertions about things, but these vocabularies must be able to be mixed together.  A vocabulary about TV shows developed by TV aficionados and a vocabulary about movies independently developed by movie connoisseurs must be able to be used together in the same file, to talk about the same things, for instance to assert that an actor has appeared in both TV shows and movies.
+
+These are the requirements that RDF, Resource Description Framework, provides a standard for, as we'll see in the next section.  Before getting too abstract, here are actual RDF examples of the information from the graph above, first in the Notation 3 format, which closely follows the tabular encoding of the underlying graph:
+
+_Notation 3 Example_
+<pre>
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix ex: &lt;http://www.example.org/&gt; .
+
+ex:vincent_donofrio ex:starred_in ex:law_and_order_ci .
+ex:law_and_order_ci rdf:type ex:tv_show .
+ex:the_thirteenth_floor ex:similar_plot_as ex:the_matrix .
+</pre>
+
+And in the standard RDF/XML format, which may have a more intuitive feel but tends to obscure the underlying graph:
+
+_RDF/XML Example_
+<pre>
+&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:ex="http://www.example.org/"&gt;
+
+    &lt;rdf:Description rdf:about="http://www.example.org/vincent_donofrio"&gt;
+        &lt;ex:starred_in&gt;
+            &lt;ex:tv_show rdf:about="http://www.example.org/law_and_order_ci" /&gt;
+        &lt;/ex:starred_in&gt;
+    &lt;/rdf:Description&gt;
+
+    &lt;rdf:Description rdf:about="http://www.example.org/the_thirteenth_floor"&gt;
+        &lt;ex:similar_plot_as rdf:resource="http://www.example.org/the_matrix" /&gt;
+    &lt;/rdf:Description&gt;
+
+&lt;/rdf:RDF&gt;
+</pre>
+
+RDF was [originally](http://www.w3.org/TR/1999/REC-rdf-syntax-19990222/) created in 1999 as a standard on top of XML for encoding metadata — literally, data about data.  Metadata is of course things like who authored a Web page, what date a blog entry was published, etc., information that is in some sense _secondary_ to some other content already on the regular Web.  Since then, and perhaps even after [the updated RDF spec in 2004](http://www.w3.org/TR/rdf-primer/), the scope of RDF has really evolved into something greater.  The most exiting uses of RDF aren't in encoding information about Web resources, but information about and relations between things in the real world: people, places, concepts, etc.
+
+<a name="Introducing RDF"> </a>
+
+## Introducing RDF
 
 Unless you know Resource Description Framework (RDF) well, it's 
 probably best if you try to forget what you already know about it.  RDF 
@@ -91,30 +169,21 @@ and second by allowing any document to use any vocabulary.  This allows
 enormous flexibility in expressing facts about a wide range of things,
 drawing on information from a wide range of sources.
 
-RDF is the foundation for the Semantic Web, a layer on top of the
-existing web consisting of raw information (in RDF) that computer
-applications can make direct use of.
-
-The next section defines RDF formally, distilling RDF into
-three simple rules.  After that, RDF's application to distributed
-information is presented, and the common syntaxes for writing
-RDF are introduced.  Last, the basics of "higher-order RDF" --
-vocabularies and schema -- are presented.
-
-In the future I would like to add to this article information on
-some Semantic Web technologies built on top of RDF, including
-inference engines and SPARQL queries.  But that's a project for
-another date.
-
 > For the official documentation on RDF, start with the [RDF Primer](http://www.w3.org/TR/rdf-primer/).
 
-<a name="What is RDF?"> </a>
+<a name="Triples of knowledge"> </a>
 
-## What is RDF?
+## Triples of knowledge
 
-<a name="RDF Defined"> </a>
+RDF provides a general, flexible method to decompose any knowledge into small pieces, called triples, with some rules about the semantics (meaning) of those pieces.
 
-### RDF Defined
+The foundation is breaking knowledge down into a labeled, directed graph. Each edge in the graph represents a fact, or a relation between two things.  The edge in the example from the node <tt>vincent_donofrio</tt> labeled <tt>starred_in</tt> to the node <tt>the_thirteenth_floor</tt> represents the fact that actor Vincent D'Onofrio starred in the movie "The Thirteenth Floor."  A fact represented this way has three parts: a subject, a predicate (i.e. verb), and an object.  The subject is what's at the start of the edge, the predicate is the type of edge (its label), and the object is what's at the end of the edge.
+
+The six documents composing [the RDF specification](http://www.w3.org/TR/rdf-primer/) tell us two things.  First, it outlines [the abstract model](http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/), i.e. how to use triples to represent knowledge about the world.  Second, it describes [how to encode those triples in XML](http://www.w3.org/TR/rdf-syntax-grammar/).
+
+<a name="The abstract RDF model defined"> </a>
+
+### The abstract RDF model defined
 
 RDF is nothing more than a general method to decompose information into 
 pieces.  The emphasis is on general here because the same method can be 
@@ -146,8 +215,9 @@ what name you choose for anything, as long as you use it consistently
 throughout.
 
 Names in RDF statements are said to **refer to** or **denote** things in
-the world.  The things that names denote are called **resources**,
-hence the name RDF, or **entities**.  For instance, the name
+the world.  The things that names denote are called **resources** (dating back
+to RDF's use for metadata for web resources),
+**nodes** (from graph terminology), or **entities**.  For instance, the name
 _my_apartment_ denotes my actual apartment, which is an entity in the
 real world.  The distinction between names and the entities they denote
 is minute but important because two names can be used to refer to the
@@ -277,10 +347,12 @@ And that's RDF.  Everything else in the Semantic Web builds on those
 three rules, repeated here to hammer home the simplicity of the system:
 
 1.  A fact is expressed as a triple of the form (Subject, Predicate, Object).
-2.  Subjects, predicates, and objects are names for entities, whether
+2.  Subjects, predicates, and objects are given as names for entities, whether
 	concrete or abstract, in the real world.
 3.  Names are in the format of URIs, which are global and refer to
 	the same entity in any RDF document in which they appear.
+
+These concepts form most of the abstract RDF model for encoding knowledge.  It's analogous to the common API that most XML libraries provide.  If it weren't for us curious humans always peeking into files, the actual format of XML wouldn't matter so much as long as we had our <tt>appendChild</tt>, <tt>setAttribute</tt>, etc.  Of course, we do need a common file format for exchanging data, and in fact there are two for RDF, which we look at later.
 
 <a name="RDF as a Graph"> </a>
 
@@ -388,13 +460,120 @@ first name, a middle name, and a last name) using intermediate nodes.
 They could be named nodes with URIs, but there is a certain amount
 of strangeness in giving things like people's names their own URIs.
 
+<a name="Reading and writing RDF: Serialization syntaxes"> </a>
+
+## Reading and writing RDF: Serialization syntaxes
+
+<a name="The RDF/XML format"> </a>
+
+### The RDF/XML format
+
+In the previous section we covered the abstract RDF model.  Now we turn to how actually to write RDF in two formats.  The W3C specifications define an [XML format](http://www.w3.org/TR/rdf-syntax-grammar/) to encode RDF.  Here's an example:
+
+_RDF/XML Example_
+<pre>
+&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:geo="http://www. w3.org/2003/01/geo/wgs84_pos#"
+    xmlns:edu="http://www.example.org/"&gt;
+
+    &lt;rdf:Description rdf:about="http://www.princeton.edu"&gt;
+        &lt;geo:lat&gt;40.35&lt;/geo:lat&gt;
+        &lt;geo:long&gt;-74.66&lt;/geo:long&gt;
+        &lt;edu:hasDept rdf:resource="http://www.cs.princeton.edu"
+            dc:title="Department of Computer Science"/&gt;
+    &lt;/rdf:Description&gt;
+
+&lt;/rdf:RDF&gt;
+</pre>
+
+In an RDF/XML document there are two types of nodes: resource nodes and property nodes.  Resource nodes are the subjects and objects of statements, and they usually have an <tt>rdf:about</tt> attribute on them giving the URI of the resource they represent.  In this example, the <tt>rdf:Description</tt> node is the only resource node, representing whatever was meant by the name &lt;http://www.princeton.edu&gt; (probably Princeton University itself, and _not_ the website at that address).
+
+Resource nodes contain (only) property nodes, which represent statements.  There are three statements in this example, all with the subject &lt;http://www.princeton.edu&gt;, and with the predicates <tt>geo:lat</tt>, <tt>geo:long</tt>, and <tt>edu:hasDept</tt>.
+
+Property nodes in turn contain literal values, like "40.35" and "-74.66", or a reference to an object resource using the <tt>rdf:resource</tt> attribute, or they may contain a full resource node as their object.
+
+From the specification we are told how to take the XML document above and get out of it this table of statements:
+
+_The Underlying Triples_
+<pre>
+            Subject            Predicate              Object
+----------------------------- ----------- ------------------------
+&lt;http://www.princeton.edu&gt;    edu:hasDept &lt;http://www.cs.princeton.edu&gt;
+&lt;http://www.princeton.edu&gt;    geo:lat     "40.35"
+&lt;http://www.princeton.edu&gt;    geo:long    "-74.66"
+&lt;http://www.cs.princeton.edu&gt; dc:title    "Department of Computer Science"
+</pre>
+
+These triples are the bread and butter of RDF.  When applications use RDF in XML format, they see the triples. Note that the hierarchical structure of the XML and the order of the nodes is lost in the table of triples, which means that, like whitespace, it was not a part of the information meant to be encoded in the RDF.
+
+<a name="Notation 3"> </a>
+
+### Notation 3
+
+[Notation 3](http://www.w3.org/DesignIssues/Notation3.html) (“N3”), or [Turtle](http://www.dajobe.org/2004/01/turtle/), is another system for writing out RDF.  Since it works under the same abstract model, the difference between it and RDF/XML is superficial — readability.
+
+The same information in the RDF/XML file written in N3 looks like this:
+
+_Notation 3 Example_
+<pre>
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix dc: &lt;http://purl.org/dc/elements/1.1/&gt; .
+@prefix geo: &lt;http://www. w3.org/2003/01/geo/wgs84_pos#&gt; .
+@prefix edu: &lt;http://www.example.org/&gt; .
+
+&lt;http://www.princeton.edu&gt; geo:lat "40.35" ; geo:long "-74.66" .
+&lt;http://www.cs.princeton.edu&gt; dc:title "Department of Computer Science" .
+&lt;http://www.princeton.edu&gt; edu:hasDept &lt;http://www.cs.princeton.edu&gt; .
+</pre>
+
+In N3 and Turtle, statements are just written out as the subject URI (in brackets or abbreviated with 
+namespaces), followed by the predicate URI, followed by the object URI or literal value, followed by a period.  
+Also, namespaces are declared at the top with the <tt>@prefix</tt> directive.  Full URIs are reassembled
+from the abbreviated notation, like <tt>geo:lat</tt>, just by concatenating the corresponding
+namespace with the second part of the abbreviation, i.e. <tt>http://www. w3.org/2003/01/geo/wgs84_pos#</tt>
++ <tt>lat</tt> = <tt>http://www. w3.org/2003/01/geo/wgs84_pos#lat</tt>.
+
+N3 has some syntactic sugar that allows further abbreviations.  If
+many statements repeat the same subject and predicate, just separate
+the objects with commas:
+
+_N3 Syntactic Sugar: Commas_
+<pre>
+&lt;http://www.princeton.edu&gt; edu:hasDept &lt;http://www.cs.princeton.edu&gt; ,
+	&lt;http://www.math.princeton.edu&gt; , &lt;http://history.princeton.edu&gt; .
+</pre>
+
+And if the same subject is repeated, but with different predicates,
+one may use semicolons as in the example:
+
+_N3 Syntactic Sugar: Semicolons_
+<pre>
+&lt;http://www.princeton.edu&gt; geo:lat "40.35" ; geo:long "-74.66" .
+</pre>
+
+N3 has a few other abbreviations as well.  The common predicate
+<tt>rdf:type</tt> can be abbreviated simply as <tt>a</tt> (as in "is a").
+
+[Turtle](http://www.ilrt.bris.ac.uk/discovery/2004/01/turtle/)
+and NTriples are just like N3, but each with fewer of N3's syntactic
+complexities.
+
+Sometimes RDF/XML makes the information easier for humans to read,
+but most of the time it just makes it more difficult to see exactly
+what RDF statements are contained in there.  It's the statements
+that count in the end, not the structure of the XML.
+
+> See also: The authoratative definitions of [N3 
+> syntax](http://www.w3.org/2000/10/swap/Primer.html) and [RDF/XML syntax](http://www.w3.org/TR/rdf-syntax-grammar/).
+
 <a name="Distributed Information"> </a>
 
 ## Distributed Information
 
-So far, RDF might seem unnecessarily complex.  All of the
-information about my apartment could be written in plain XML 
-much easier than in RDF.  Taking a single document in isolation,
+So far, RDF might seem unnecessarily complex.  For all of the examples
+so far, the information could be written in plain XML just the same.
+Taking a single document in isolation,
 this is true.  But RDF excels when every document is thought
 of as part of the bigger picture, part of a huge graph of
 knowledge spread throughout the Internet.  In this "Semantic
@@ -422,10 +601,9 @@ has no meaning to anyone else unless I explain what each URI is intended
 to denote or mean. Two RDF documents with no URIs in common have no information 
 that can be interrelated.  But, two documents that have some URIs in 
 common are talking about some of the same things.  Someone else might 
-want to publish information about my apartment, such as how far it is 
-from where they live.  By using the same URI for my apartment in the two 
-documents, RDF tools will be able to recognize that the two documents 
-are describing the same thing.
+want to publish information about Law &amp; Order.  By using the same URI for
+the television show in the two documents, RDF tools will be able to recognize
+that the two documents are describing the same thing.
 
 Here is an example of using RDF to describe books.  Let's say, 
 hypothetically, that the Library of Congress posted an RDF list of books 
@@ -574,91 +752,6 @@ information, they don't need a new format, they just need to choose the
 right subjects, predicates, and objects.
 
 Is this any better than XML?  I'll take a look at that later on.
-
-<a name="Reading and Writing RDF"> </a>
-
-## Reading and Writing RDF
-
-There are a few standard formats for writing out RDF information.  The 
-two most common are [Notation 3](http://www.w3.org/2000/10/swap/Primer.html) (N3), which is basically a tabular 
-format, and [RDF/XML](http://www.w3.org/TR/rdf-syntax-grammar/), which is an XML-based format.
-
-RDF/XML is the most common, but it is fairly complex and in its complexity
-obscures the simplicity of the underlying data.  I strongly recommend
-working in N3 as much as possible.
-
-The N3 version of the information about my apartment is written as:
-
-_N3 for My Apartment_
-<pre>
-@prefix taubz: &lt;http://taubz.for.net#&gt; .
-taubz:me            &lt;http://example.org/own&gt;    taubz:my_apartment .
-taubz:my_apartment  &lt;http://example.org/has&gt;    taubz:my_computer .
-taubz:my_apartment  &lt;http://example.org/has&gt;    taubz:my_bed .
-taubz:my_apartment  &lt;http://example.org/is_in&gt;  &lt;http://example.org/Philadelphia&gt; .
-</pre>
-
-You should note two things: First, every namespace is declared before
-it is used with the <tt>@prefix</tt> keyword.  Second, every statement
-is followed by a period.
-
-N3 has some syntactic sugar that allows further abbreviations.  If
-many statements repeat the same subject and predicate, just separate
-the objects with commas:
-
-_N3 Syntactic Sugar: Commas_
-<pre>
-@prefix taubz: &lt;http://taubz.for.net#&gt; .
-taubz:me            &lt;http://example.org/own&gt;    taubz:my_apartment .
-taubz:my_apartment  &lt;http://example.org/has&gt;    taubz:my_computer **,**
-                                                     taubz:my_bed .
-taubz:my_apartment  &lt;http://example.org/is_in&gt;  &lt;http://example.org/Philadelphia&gt; .
-</pre>
-
-And if the same subject is repeated, but with different predicates,
-one may use semicolons like so:
-
-_N3 Syntactic Sugar: Semicolons_
-<pre>
-@prefix taubz: &lt;http://taubz.for.net#&gt; .
-taubz:me            &lt;http://example.org/own&gt;    taubz:my_apartment .
-taubz:my_apartment  &lt;http://example.org/has&gt;    taubz:my_computer **,**
-                                                     taubz:my_bed **;**
-                    &lt;http://example.org/is_in&gt;  &lt;http://example.org/Philadelphia&gt; .
-</pre>
-
-N3 has a few other abbreviations as well.  The common predicate
-<tt>rdf:type</tt> can be abbreviated simply as <tt>a</tt> (as in "is a").
-
-[Turtle](http://www.ilrt.bris.ac.uk/discovery/2004/01/turtle/)
-and NTriples are just like N3, but each with fewer of N3's syntactic
-complexities.
-
-The same information in RDF/XML is:
-
-_RDF/XML for My Apartment_
-<pre>
-&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-      xmlns:global="http://example.org/"&gt;
-   &lt;rdf:Description rdf:about="http://taubz.for.net#me"&gt;
-      &lt;global:own&gt;
-         &lt;rdf:Description rdf:about="http://taubz.for.net#my_apartment"&gt;
-             &lt;global:has rdf:resource="http://taubz.for.net#my_computer" /&gt;
-             &lt;global:has rdf:resource="http://taubz.for.net#my_bed" /&gt;
-             &lt;global:is_in rdf:resource="http://example.org/Philadelphia" /&gt;
-         &lt;/rdf:Description&gt;
-      &lt;/global:own&gt;
-   &lt;/rdf:Description&gt;
-&lt;/rdf:RDF&gt;
-</pre>
-
-Sometimes RDF/XML makes the information easier for humans to read,
-but most of the time it just makes it more difficult to see exactly
-what RDF statements are contained in there.  It's the statements
-that count in the end, not the structure of the XML.
-
-> See also: The authoratative definitions of [N3 
-> syntax](http://www.w3.org/2000/10/swap/Primer.html) and [RDF/XML syntax](http://www.w3.org/TR/rdf-syntax-grammar/).
 
 <a name="Comparing RDF with XML"> </a>
 
@@ -955,4 +1048,3 @@ If you want to program with RDF, grab [one
 
 Many thanks to everyone on the semantic-web W3 mail list
 	who provided feedback on the initial post of this article!
-
