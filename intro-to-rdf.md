@@ -17,6 +17,7 @@ for deployment, and querying RDF data sources.
 
 * * *
 
+0.  [Really Quick Introduction](#Quick Intro)
 1.  [Why we need a new standard for the Semantic Web](#Why we need a new standard for the Semantic Web)
 2.  [Introducing RDF](#Introducing RDF)
 3.  [Triples of knowledge](#Triples of knowledge)
@@ -47,6 +48,225 @@ from my [xml.com](http://www.xml.com/pub/a/2001/01/24/rdf.html)
 article "What is RDF". In January 2008 it was revised
 with more on N3 and RDF/XML and extended with the new sections Linked Data for the Web and
 Querying Semantic Web Databases
+
+<a name="Quick Intro"> </a>
+
+## Really Quick Intro to RDF
+
+This section is a really brief introduction to Resource Description Framework (RDF). You might also be interested
+in...
+
+*   My more in-depth guide, which you'll find after this quick part wraps up.
+*   Two video introductions to [the Semantic Web](http://wiki.digitalbazaar.com/en/Semantic-web-intro) and [RDF and RDFa](http://wiki.digitalbazaar.com/en/Rdfa-basics) by Manu Sporny are very good.
+*   Ian Davis's [RDF Tutorial](http://research.talis.com/2005/rdf-intro/) slides are also very good.
+*   There is also a [Russian translation](http://xmlhack.ru/texts/06/rdf-quickintro/rdf-quickintro.html) of this page.
+
+RDF is a method for expressing knowledge in a decentralized world and 
+is the foundation of the Semantic Web, in which computer applications 
+make use of distributed, structured information spread throughout the 
+Web.  Just to get it out of the way, RDF isn't strictly an XML format, 
+it's not just about metadata, it has little to do with RSS, and it's not 
+as complicated as you think.
+
+### The Big Picture
+
+RDF is a general method to decompose any type of knowledge into small pieces, with some rules about the semantics, or 
+meaning, of those pieces. The point is to have a method so simple that it can express any fact, and yet so 
+structured that computer applications can do useful things with it.  Here's some RDF:
+
+<pre class="code">
+@prefix : &lt;http://www.example.org/&gt; .
+:john    a           :Person .
+:john    :hasMother  :susan .
+:john    :hasFather  :richard .
+:richard :hasBrother :luke .
+</pre>
+
+The meaning is obvious.  We'll get to the details later.
+
+If you know XML, here's a brief comparison.  Like RDF, XML also is designed to be simple and 
+general-purpose. XML can be abstracted beyond its written brackets-and-slashes notation to something more 
+abstract, a "DOM" for tree-structured data.  Similarly, RDF isn't just about how you write it.  It's about 
+representing network- or graph-structured information.  You _can_ write RDF in XML, and many
+people do.  Here's what it might look like:
+
+<pre class="code">
+&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:ns="http://www.example.org/#"&gt;
+  &lt;ns:Person rdf:about="http://www.example.org/#john"&gt;
+    &lt;ns:hasMother rdf:resource="http://www.example.org/#susan" /&gt;
+    &lt;ns:hasFather&gt;
+      &lt;rdf:Description rdf:about="http://www.example.org/#richard"&gt;
+        &lt;ns:hasBrother rdf:resource="http://www.example.org/#luke" /&gt;
+      &lt;/rdf:Description&gt;
+    &lt;/ns:hasFather&gt;
+  &lt;/ns:Person&gt;
+&lt;/rdf:RDF&gt;
+</pre>
+
+But you don't have to use XML.  I don't.  The first format above, called N3, is just as good.
+
+What really sets RDF apart from XML and other things is that RDF is designed 
+to represent knowledge in a distributed world.  This means RDF is
+particularly concerned with meaning. Everything at all mentioned in RDF means something, whether a reference 
+to something concrete in the world, an abstract concept, or a fact.  Standards built on RDF
+describe logical inferences between facts and how to search for facts in a large database of RDF knowledge.
+
+What makes RDF suited for distributed knowledge is that RDF applications can
+put together RDF files posted by different people around the Internet and easily learn from them new things 
+that no single document asserted. It does this in two ways, first by linking documents together by the common 
+vocabularies they use, and second by allowing any document to use any vocabulary.  This flexibility is fairly
+unique to RDF.
+
+Consider this second document of RDF:
+
+<pre class="code">
+@prefix : &lt;http://www.example.org/&gt; .
+:richard :hasSister :rebecca
+{ ?a :hasFather ?b . ?b :hasSister ?c . } =&gt; { ?a :hasAunt ?c } .
+</pre>
+
+This RDF document defines what it means to be an aunt, in terms of two other relations.
+You could imagine an application putting this document together with the first RDF document to determine
+that <tt>:rebecca</tt> is <tt>:john</tt>'s aunt.  What makes this work is that the names of entities
+are global.  That is, when <tt>:john</tt> and <tt>:hasFather</tt> are used in one document, applications can assume
+they have the same meaning in any other RDF document with the same <tt>@prefix</tt>.
+
+So why use RDF?  Here are use cases, as described by Richard Cyganiak
+on the [W3C's Semantic Web mail list](http://www.w3.org/2001/sw/interest/):
+
+*   You want to integrate data from different sources without custom programming.
+*   You want to offer your data for re-use by other parties*   You want to decentralize data in a way that no single party "owns" all the data.
+*   You want to do something fancy with large amounts of data (browse,
+	query, match, input, extract, ...), so you develop (or re-use) a generic
+	tool that allows you to do this on top of the RDF data model (which has
+	the advantage of not being tied to a proprietary data
+	storage/representation technology, like a database dialect).
+
+### RDF Defined
+
+RDF can be defined in three simple rules:
+
+1.  A fact is expressed as a triple of the form (Subject, Predicate, Object).  It's like a little English sentence.
+2.  Subjects, predicates, and objects are names for entities, whether concrete or abstract, in the real world.
+Names are either 1) global and refer to the same entity in any RDF document in which they appear, or
+2) local, and the entity it refers to cannot be directly refered to outside of the RDF document.
+3.  Objects can also be text values, called literal values.
+
+You've seen facts already.  Each line below was a fact:
+
+<pre class="code">
+:john    a           :Person .
+:john    :hasMother  :susan .
+  ...
+</pre>
+
+Names come in two types.  Global names, which have the same meaning everywhere, are always Uniform 
+Resource Identifiers (URIs).  URIs can have the same syntax or format as website addresses, so you will see 
+RDF files that contain URIs like <tt>http://www.w3.org/1999/02/22-rdf-syntax-ns#type</tt>, where that URI is 
+the global name for some entity. The fact that it looks like a web address is totally incidental. There may or 
+may not be an actual website at that address, and it doesn't matter. There are other types of URIs besides 
+http:-type URIs. URNs are a subtype of URI used for things like identifying books by their ISBN number, e.g.  
+<tt>urn:isbn:0143034650</tt>. TAGs are a general-purpose type of URI. They look like 
+<tt>tag:govtrack.us,2005:congress/senators/frist</tt>. URIs are used as global names because they provide a 
+way to break down the space of all possible names into units that have obvious owners. URIs that start with 
+<tt>http://www.rdfabout.net/</tt> are implicitly controlled by me.
+
+This point is important and needs repeating: Whatever their form, URIs you see in RDF documents are merely 
+verbose names for entities, nothing more.  Forget that it has anything to do with the web.
+
+Since URIs can be quite long, in various RDF notations they're usually abbreviated using the concept of 
+namespaces from XML.  That's what the colons are doing in <tt>:john</tt>, <tt>:hasMother</tt>, and the
+other entities in the example.  The colons indicate the name is an abbreviated form.  In these
+cases, the names were <tt>http://www.example.org/#john</tt>, <tt>http://www.example.org/#hasMother</tt>, etc.
+
+When written out, URIs are generally enclosed in brackets to distinguish them from namespaced-abbreviated names.
+
+Literal values allow text to be included in RDF.  This is used heavily when RDF is used for metadata:
+
+<pre class="code">
+&lt;http://www.rdfabout.net/&gt; a :Website .
+&lt;http://www.rdfabout.net/&gt; dc:title "rdf:about" .
+&lt;http://www.rdfabout.net/&gt; dc:description "A website about
+	Resource Description Framework." .
+</pre>
+
+And that's basically RDF.
+
+### RDF As A Graph
+
+There are two complementary ways of looking at RDF information. The first is as a set of statements, like above. Each statement represents a fact. The second way is as a graph.
+
+A graph is basically a network. Graphs consist of nodes interconnected by edges. In the Internet, for instance, the nodes are the computers, and the edges are the ethernet wires connecting them. In RDF, the nodes are names (not actual entities) and the edges are statements. Here's an example:
+
+<center>![](rdfasagraph.png)</center>
+
+Each arrow or edge is a RDF statement. The name at the start of the arrow is the statement's subject, the name at the end of the arrow is the statement's object, and the name that labels the arrow is the predicate.
+RDF as a graph expresses exactly the same information as RDF written out as triples, but the graph form makes it easier for us humans to see structure in the data.
+
+### A Quick Example
+
+So how is RDF useful?  It's the technology for the job when you want to mesh together distributed 
+information.
+
+Here's a scenario where distributed information makes a lot of sense: a database of products from multiple 
+vendors and reviews of those products from multiple reviewers. No one vendor is going to want to be 
+responsible for maintaining a central database for this project, especially since it will contain information 
+for competing products and negative reviews. Likewise, no one reviewer may have the resources to keep such a 
+database up to date.
+
+RDF is particularly suited for this project. Each vendor and reviewer will publish a file in RDF on their 
+own websites. The vendors will choose URIs for their products, and the reviewers will use those URIs when 
+composing their reviews. Vendors don't need to agree on a common naming scheme for products, and reviewers 
+aren't tied to a vendor-controlled data format. RDF allows the vendors and reviewers to agree on what they 
+need to agree on, without forcing anyone to use one particular vocabulary.
+
+Here are the RDF files they publish:
+
+<pre class="code">
+**Vendor 1:**
+vendor1:productX	dc:title	"Cool-O-Matic" .
+vendor1:productX	retail:price	"$50.75" .
+vendor1:productX	vendor1:partno	"TTK583" .
+vendor1:productY	dc:title	"Fluffertron" .
+vendor1:productY	retail:price	"$26.50" .
+vendor1:productY	vendor1:partno	"AAL132" .
+
+**Vendor 2:**
+vendor2:product1	dc:title	"Can Closer" .
+vendor2:product2	dc:title	"Dust Unbuster" .
+
+**Reviewer 1:**
+vendor1:productX	dc:description	"This product is good buy!" .
+
+**Reviewer 2:**
+vendor2:product2  dc:description  "Who needs something to unbust dust? 
+                                  A dust buster would be a better idea,
+                                  and I wish they posted the price." .
+vendor2:product2  review:rating   review:Excellent .
+</pre>                                  
+
+It's an open question just how an application will retrieve these files, but I'll put that aside. Once an 
+application has these files, it has enough information to relate products to reviews to prices, and even to 
+vendor-specific information like vendor1:partno. What you should take away from this 
+example is how unconstraining RDF is, while still allowing applications to immediately be able to relate 
+information together.
+
+The vendors and reviewers didn't have to agree on much to make this happen. They had to agree to use RDF, 
+but they didn't have to agree on any specific data format or even on specific URIs.  Crucially, they 
+didn't have to enumerate everything any vendor would want to include about their products, and they
+can't lock out reviewers from posting related information.
+
+Another way to look at this from the standpoint of interoperability. Vendor 1's format is entirely 
+interoperable with anyone else's format, even though Vendor 1 didn't hash out a common format with anyone. 
+When someone comes along and wants to be interoperable with Vendor 1's information, they don't need a new 
+format, they just need to choose the right subjects, predicates, and objects.
+
+### Conclusion
+
+If you thought RDF was complicated, I hope you see now that it
+doesn't have to be.  RDF is easy to write, flexible, and unconstraining.
+It makes it easy to model knowledge and to mesh distributed knowledge sources.
 
 <a name="Why we need a new standard for the Semantic Web"> </a>
 
