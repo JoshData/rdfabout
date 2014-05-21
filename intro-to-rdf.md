@@ -30,7 +30,7 @@ The first chapter (Really Quick Introduction) has been translated into:
 1.  [Why we need a new standard for the Semantic Web](#Why we need a new standard for the Semantic Web)
 2.  [Introducing RDF](#Introducing RDF)
 3.  [Triples of knowledge](#Triples of knowledge)
-    1.  [The abstract RDF model: Statements](#The abstract RDF model: Statements)
+    1.  [The abstract RDF model: Statements](#Statements)
     2.  [URIs to Name Resources](#URIs to Name Resources)
     3.  [Wrapping It Up So Far](#Wrapping It Up So Far)
     4.  [Blank Nodes and Literal Values](#Blank Nodes and Literal Values)
@@ -40,7 +40,7 @@ The first chapter (Really Quick Introduction) has been translated into:
     3.  [Use a Validator!](#Use a Validator!)
 5.  [Distributed Information](#Distributed Information)
     1.  [Choosing the Right Predicates](#Choosing the Right Predicates)
-    2.  [Meshing Information: A Real-World Example](#Meshing Information: A Real-World Example)
+    2.  [Meshing Information: A Real-World Example](#Meshing Information)
 6.  [Comparing RDF with XML](#Comparing RDF with XML)
 7.  [RDF about RDF](#RDF about RDF)
     1.  [RDF Schema (RDFS)](#RDF Schema)
@@ -422,7 +422,7 @@ Each edge in the graph represents a fact, or a relation between two things.  The
 
 The six documents composing [the RDF specification](http://www.w3.org/TR/rdf-primer/) tell us two things.  First, it outlines [the abstract model](http://www.w3.org/TR/2004/REC-rdf-concepts-20040210/), i.e. how to use triples to represent knowledge about the world.  Second, it describes [how to encode those triples in XML](http://www.w3.org/TR/rdf-syntax-grammar/). We'll take each subject in turn.
 
-<a name="The abstract RDF model: Statements"> </a>
+<a name="Statements"> </a>
 
 ### The abstract RDF model: Statements
 
@@ -1122,7 +1122,7 @@ its title.  You wouldn't want to use it to relate a telephone to its
 phone number, for instance, because existing RDF applications that get
 a hold of your data will use it in ways that simply won't make sense.
 
-<a name="Meshing Information: A Real-World Example"> </a>
+<a name="Meshing Information"> </a>
 
 ### Meshing Information: A Real-World Example
 
