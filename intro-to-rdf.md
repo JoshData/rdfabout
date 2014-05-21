@@ -17,6 +17,15 @@ for deployment, and querying RDF data sources.
 
 * * *
 
+Translations
+
+The first chapter (Really Quick Introduction) has been translated into:
+
+* [Russian](http://xmlhack.ru/texts/06/rdf-quickintro/rdf-quickintro.html) by A.Skrobov
+* [Spanish](http://www.seofreelance.es/que-es-rdf-introduccion-a-rdf/) by Ricard Menor
+
+* * *
+
 0.  [Really Quick Introduction](#Quick Intro)
 1.  [Why we need a new standard for the Semantic Web](#Why we need a new standard for the Semantic Web)
 2.  [Introducing RDF](#Introducing RDF)
@@ -59,7 +68,6 @@ in...
 *   My more in-depth guide, which you'll find after this quick part wraps up.
 *   Two video introductions to [the Semantic Web](http://wiki.digitalbazaar.com/en/Semantic-web-intro) and [RDF and RDFa](http://wiki.digitalbazaar.com/en/Rdfa-basics) by Manu Sporny are very good.
 *   Ian Davis's [RDF Tutorial](http://research.talis.com/2005/rdf-intro/) slides are also very good.
-*   There is also a [Russian translation](http://xmlhack.ru/texts/06/rdf-quickintro/rdf-quickintro.html) of this page.
 
 RDF is a method for expressing knowledge in a decentralized world and 
 is the foundation of the Semantic Web, in which computer applications 
